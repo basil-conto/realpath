@@ -76,9 +76,9 @@ realpath_copy_string (emacs_env *env, emacs_value value)
   return NULL;
 }
 
-#define REALPATH_TRUENAME_DOC                       \
-  "Like `file-truename', but using `realpath(3)'\n" \
-  "\n"                                              \
+#define REALPATH_TRUENAME_DOC                        \
+  "Like `file-truename', but using `realpath(3)'.\n" \
+  "\n"                                               \
   "(fn FILENAME)"
 
 static emacs_value
