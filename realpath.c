@@ -90,25 +90,26 @@ Frealpath_truename (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
   (void) nargs;
   (void) ptr;
 
-  char *fpath, *tpath;
-  emacs_value fpathlisp, tpathlisp;
+  /* Falsepath, truepath.  */
+  char *fp, *tp;
+  emacs_value fpath, tpath;
 
-  tpathlisp = Qnil;
-  fpathlisp = env->funcall (env, Qexpand_file_name, 1, args);
-  fpath     = realpath_copy_string (env, fpathlisp);
+  tpath = Qnil;
+  fpath = env->funcall (env, Qexpand_file_name, 1, args);
+  fp    = realpath_copy_string (env, fpath);
 
-  if ((tpath = canonicalize_file_name (fpath)))
-    tpathlisp = realpath_make_string (env, tpath);
+  if ((tp = canonicalize_file_name (fp)))
+    tpath = realpath_make_string (env, tp);
   /* Allow non-existent expanded filename à la Ffile_truename.  */
   else if (errno == ENOENT)
-    tpathlisp = fpathlisp;
+    tpath = fpath;
   else
     realpath_signal (env, "file-error");
 
-  free (fpath);
-  free (tpath);
+  free (fp);
+  free (tp);
 
-  return tpathlisp;
+  return tpath;
 }
 
 /* Bind `realpath-truename' and provide `realpath'.  */
