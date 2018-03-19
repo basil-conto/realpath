@@ -1,4 +1,4 @@
-# Realpath - Emacs dynamic module interface to realpath(3).
+# Realpath - Emacs dynamic module interface to canonicalize_file_name(3).
 
 # Written in 2017 by Basil L. Contovounesios <basil.conto@gmail.com>
 #

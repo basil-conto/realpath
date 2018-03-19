@@ -1,4 +1,4 @@
-/* Realpath - Emacs dynamic module interface to realpath(3).
+/* Realpath - Emacs dynamic module interface to canonicalize_file_name(3).
 
 Written in 2017 by Basil L. Contovounesios <basil.conto@gmail.com>
 
@@ -13,12 +13,14 @@ You should have received a copy of the CC0 Public Domain Dedication
 along with this software.  If not, see
 <https://creativecommons.org/publicdomain/zero/1.0/>.  */
 
-#include "emacs-module.h"       /* For emacs_*.                 */
+#define _GNU_SOURCE             /* For canonicalize_file_name.                */
 
-#include <errno.h>              /* For errno.                   */
-#include <stddef.h>             /* For NULL, ptrdiff_t.         */
-#include <stdlib.h>             /* For free, malloc, realpath.  */
-#include <string.h>             /* For strerror, strlen.        */
+#include "emacs-module.h"       /* For emacs_*.                               */
+
+#include <errno.h>              /* For errno.                                 */
+#include <stddef.h>             /* For NULL, ptrdiff_t.                       */
+#include <stdlib.h>             /* For canonicalize_file_name, free, malloc.  */
+#include <string.h>             /* For strerror, strlen.                      */
 
 int plugin_is_GPL_compatible;
 
@@ -76,9 +78,9 @@ realpath_copy_string (emacs_env *env, emacs_value value)
   return NULL;
 }
 
-#define REALPATH_TRUENAME_DOC                        \
-  "Like `file-truename', but using `realpath(3)'.\n" \
-  "\n"                                               \
+#define REALPATH_TRUENAME_DOC                                      \
+  "Like `file-truename', but using `canonicalize_file_name(3)'.\n" \
+  "\n"                                                             \
   "(fn FILENAME)"
 
 static emacs_value
@@ -95,7 +97,7 @@ Frealpath_truename (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
   fpathlisp = env->funcall (env, Qexpand_file_name, 1, args);
   fpath     = realpath_copy_string (env, fpathlisp);
 
-  if ((tpath = realpath (fpath, NULL)))
+  if ((tpath = canonicalize_file_name (fpath)))
     tpathlisp = realpath_make_string (env, tpath);
   /* Allow non-existent expanded filename à la Ffile_truename.  */
   else if (errno == ENOENT)
