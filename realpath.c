@@ -26,13 +26,15 @@ int plugin_is_GPL_compatible;
 
 /* Frequently used symbols.  */
 
+static emacs_value Qdirectory_name_p;
 static emacs_value Qexpand_file_name;
+static emacs_value Qfile_name_as_directory;
 static emacs_value Qnil;
 
 /* Return GC-protected global reference to interned NAME.  */
 
 static emacs_value
-realpath_intern_global (emacs_env *env, const char *name)
+realpath_intern (emacs_env *env, const char *name)
 {
   return env->make_global_ref (env, env->intern (env, name));
 }
@@ -99,7 +101,12 @@ Frealpath_truename (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
   fp    = realpath_copy_string (env, fpath);
 
   if ((tp = canonicalize_file_name (fp)))
+  {
     tpath = realpath_make_string (env, tp);
+    /* Return directory name when given one à la Ffile_truename.  */
+    if (env->is_not_nil (env, env->funcall (env, Qdirectory_name_p, 1, &fpath)))
+      tpath = env->funcall (env, Qfile_name_as_directory, 1, &tpath);
+  }
   /* Allow non-existent expanded filename à la Ffile_truename.  */
   else if (errno == ENOENT)
     tpath = fpath;
@@ -120,15 +127,17 @@ emacs_module_init (struct emacs_runtime *ert)
   emacs_value Qdefalias, Qprovide;
   emacs_value Qrealpath, Qrealpath_truename, Srealpath_truename;
 
-  emacs_env *env     = ert->get_environment   (ert);
-  Qexpand_file_name  = realpath_intern_global (env, "expand-file-name");
-  Qnil               = realpath_intern_global (env, "nil");
-  Qdefalias          = env->intern            (env, "defalias");
-  Qprovide           = env->intern            (env, "provide");
-  Qrealpath          = env->intern            (env, "realpath");
-  Qrealpath_truename = env->intern            (env, "realpath-truename");
-  Srealpath_truename = env->make_function     (env, 1, 1, Frealpath_truename,
-                                               REALPATH_TRUENAME_DOC, NULL);
+  emacs_env *env          = ert->get_environment (ert);
+  Qdirectory_name_p       = realpath_intern (env, "directory-name-p");
+  Qexpand_file_name       = realpath_intern (env, "expand-file-name");
+  Qfile_name_as_directory = realpath_intern (env, "file-name-as-directory");
+  Qnil                    = realpath_intern (env, "nil");
+  Qdefalias               = env->intern     (env, "defalias");
+  Qprovide                = env->intern     (env, "provide");
+  Qrealpath               = env->intern     (env, "realpath");
+  Qrealpath_truename      = env->intern     (env, "realpath-truename");
+  Srealpath_truename      = env->make_function (env, 1, 1, Frealpath_truename,
+                                                REALPATH_TRUENAME_DOC, NULL);
 
   emacs_value args[] = {Qrealpath_truename, Srealpath_truename};
 
