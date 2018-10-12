@@ -29,7 +29,6 @@ int plugin_is_GPL_compatible;
 static emacs_value Qdirectory_name_p;
 static emacs_value Qexpand_file_name;
 static emacs_value Qfile_name_as_directory;
-static emacs_value Qnil;
 
 /* Return GC-protected global reference to interned NAME.  */
 
@@ -96,7 +95,7 @@ Frealpath_truename (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
   char *fp, *tp;
   emacs_value fpath, tpath;
 
-  tpath = Qnil;
+  tpath = args[0];
   fpath = env->funcall (env, Qexpand_file_name, 1, args);
   fp    = realpath_copy_string (env, fpath);
 
@@ -131,7 +130,6 @@ emacs_module_init (struct emacs_runtime *ert)
   Qdirectory_name_p       = realpath_intern (env, "directory-name-p");
   Qexpand_file_name       = realpath_intern (env, "expand-file-name");
   Qfile_name_as_directory = realpath_intern (env, "file-name-as-directory");
-  Qnil                    = realpath_intern (env, "nil");
   Qdefalias               = env->intern     (env, "defalias");
   Qprovide                = env->intern     (env, "provide");
   Qrealpath               = env->intern     (env, "realpath");
