@@ -87,10 +87,10 @@ realpath_copy_string (emacs_env *env, emacs_value value)
 
 static emacs_value
 Frealpath_truename (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
-                    void *ptr)
+                    void *data)
 {
   (void) nargs;
-  (void) ptr;
+  (void) data;
 
   /* Falsepath, truepath.  */
   char *fp, *tp;
