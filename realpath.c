@@ -24,20 +24,6 @@ along with this software.  If not, see
 
 int plugin_is_GPL_compatible;
 
-/* Frequently used symbols.  */
-
-static emacs_value Qdirectory_name_p;
-static emacs_value Qexpand_file_name;
-static emacs_value Qfile_name_as_directory;
-
-/* Return GC-protected global reference to interned NAME.  */
-
-static emacs_value
-realpath_intern (emacs_env *env, const char *name)
-{
-  return env->make_global_ref (env, env->intern (env, name));
-}
-
 /* Wrap module_make_string using strlen(3).  */
 
 static emacs_value
@@ -46,13 +32,22 @@ realpath_make_string (emacs_env *env, const char *contents)
   return env->make_string (env, contents, strlen (contents));
 }
 
+/* Like module_funcall, but second argument is the function's NAME.  */
+
+static emacs_value
+realpath_funcall (emacs_env *env, const char *name,
+                  ptrdiff_t nargs, emacs_value *args)
+{
+  return env->funcall (env, env->intern (env, name), nargs, args);
+}
+
 /* Signal error with NAME and message describing errno(3).  */
 
 static void
 realpath_signal (emacs_env *env, const char *name)
 {
   emacs_value msg  = realpath_make_string (env, strerror (errno));
-  emacs_value data = env->funcall (env, env->intern (env, "list"), 1, &msg);
+  emacs_value data = realpath_funcall (env, "list", 1, &msg);
   env->non_local_exit_signal (env, env->intern (env, name), data);
 }
 
@@ -96,15 +91,16 @@ Frealpath_truename (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
   emacs_value fpath, tpath;
 
   tpath = args[0];
-  fpath = env->funcall (env, Qexpand_file_name, 1, args);
+  fpath = realpath_funcall (env, "expand-file-name", 1, args);
   fp    = realpath_copy_string (env, fpath);
 
   if ((tp = canonicalize_file_name (fp)))
   {
     tpath = realpath_make_string (env, tp);
     /* Return directory name when given one à la Ffile_truename.  */
-    if (env->is_not_nil (env, env->funcall (env, Qdirectory_name_p, 1, &fpath)))
-      tpath = env->funcall (env, Qfile_name_as_directory, 1, &tpath);
+    if (env->is_not_nil
+        (env, realpath_funcall (env, "directory-name-p", 1, &fpath)))
+      tpath = realpath_funcall (env, "file-name-as-directory", 1, &tpath);
   }
   /* Allow non-existent expanded filename à la Ffile_truename.  */
   else if (errno == ENOENT)
@@ -123,24 +119,15 @@ Frealpath_truename (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
 int
 emacs_module_init (struct emacs_runtime *ert)
 {
-  emacs_value Qdefalias, Qprovide;
-  emacs_value Qrealpath, Qrealpath_truename, Srealpath_truename;
+  emacs_env *env = ert->get_environment (ert);
 
-  emacs_env *env          = ert->get_environment (ert);
-  Qdirectory_name_p       = realpath_intern (env, "directory-name-p");
-  Qexpand_file_name       = realpath_intern (env, "expand-file-name");
-  Qfile_name_as_directory = realpath_intern (env, "file-name-as-directory");
-  Qdefalias               = env->intern     (env, "defalias");
-  Qprovide                = env->intern     (env, "provide");
-  Qrealpath               = env->intern     (env, "realpath");
-  Qrealpath_truename      = env->intern     (env, "realpath-truename");
-  Srealpath_truename      = env->make_function (env, 1, 1, Frealpath_truename,
-                                                REALPATH_TRUENAME_DOC, NULL);
+  emacs_value args[] = {env->intern (env, "realpath-truename"),
+                        env->make_function (env, 1, 1, Frealpath_truename,
+                                            REALPATH_TRUENAME_DOC, NULL)};
 
-  emacs_value args[] = {Qrealpath_truename, Srealpath_truename};
-
-  env->funcall (env, Qdefalias, 2, args);
-  env->funcall (env, Qprovide,  1, &Qrealpath);
+  realpath_funcall (env, "defalias", 2, args);
+  args[0] = env->intern (env, "realpath");
+  realpath_funcall (env, "provide", 1, args);
 
   return EXIT_SUCCESS;
 }
