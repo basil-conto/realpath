@@ -21,23 +21,15 @@ either  = $(or $(call princ,$(1)),$(error $(2)))
 
 # Files
 
-emacs_src_dir_lisp := (let ((dir (expand-file-name "src" source-directory))) \
-                        (if (file-readable-p dir) dir ""))
-emacs_src_dir_err  := Emacs source directory not found. \
-                      Please configure variable EMACS_SRC_DIR appropriately.
-
-EMACS_SRC_DIR      ?= $(call either,$(emacs_src_dir_lisp),$(emacs_src_dir_err))
-MOD_NAME           ?= realpath
-
-mod_suffix_lisp    := (or (bound-and-true-p module-file-suffix) "")
-mod_suffix_err     := $(EMACS) does not support modules
-
-mod_suffix         := $(call either,$(mod_suffix_lisp),$(mod_suffix_err))
-mod_target         := $(addsuffix $(mod_suffix),$(MOD_NAME))
+MOD_NAME        ?= realpath
+mod_suffix_lisp := (or (bound-and-true-p module-file-suffix) "")
+mod_suffix_err  := $(EMACS) does not support modules
+mod_suffix      := $(call either,$(mod_suffix_lisp),$(mod_suffix_err))
+mod_target      := $(addsuffix $(mod_suffix),$(MOD_NAME))
 
 # Dynamic module flags
 
-CFLAGS  += -s -fPIC -I$(EMACS_SRC_DIR)
+CFLAGS  += -s -fPIC
 LDFLAGS += -shared
 
 # Default warning flags, disabled with WARN=0

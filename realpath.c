@@ -15,7 +15,7 @@ along with this software.  If not, see
 
 #define _GNU_SOURCE             /* For canonicalize_file_name.                */
 
-#include "emacs-module.h"       /* For emacs_*.                               */
+#include <emacs-module.h>       /* For emacs_*.                               */
 
 #include <errno.h>              /* For errno.                                 */
 #include <stddef.h>             /* For NULL, ptrdiff_t.                       */
