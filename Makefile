@@ -16,7 +16,7 @@
 # Query Emacs
 
 EMACS  ?= emacs
-princ   = $(shell $(EMACS) --quick --batch --eval '(princ $(1))')
+princ   = $(shell $(EMACS) --batch --eval '(princ $(1))')
 either  = $(or $(call princ,$(1)),$(error $(2)))
 
 # Files
@@ -41,8 +41,7 @@ endif
 # Optional optimisation flags, enabled with OPT=1
 
 ifeq ($(strip $(OPT)),1)
-CFLAGS  += -flto -fomit-frame-pointer -march=native -mfpmath=sse
-CFLAGS  += -minline-all-stringops -Os -pipe
+CFLAGS  += -flto -march=native -O2
 LDFLAGS += -flto
 endif
 
