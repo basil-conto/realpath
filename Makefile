@@ -41,8 +41,7 @@ endif
 # Optional optimisation flags, enabled with OPT=1
 
 ifeq ($(strip $(OPT)),1)
-CFLAGS  += -flto -march=native -O2
-LDFLAGS += -flto
+CFLAGS += -march=native -O2
 endif
 
 # Rules
