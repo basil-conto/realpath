@@ -29,7 +29,7 @@ mod_target      := $(addsuffix $(mod_suffix),$(MOD_NAME))
 
 # Dynamic module flags
 
-override CFLAGS  += -s -fPIC
+override CFLAGS  += -fPIC
 override LDFLAGS += -shared
 
 # Default warning flags, disabled with WARN=0
@@ -41,7 +41,8 @@ endif
 # Optional optimisation flags, enabled with OPT=1
 
 ifeq ($(strip $(OPT)),1)
-override CFLAGS += -march=native -O2
+override CFLAGS  += -march=native -O2
+override LDFLAGS += -s
 endif
 
 # Optional debugging flags, enabled with DEBUG=1
