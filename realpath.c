@@ -109,17 +109,17 @@ Frealpath_truename (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
   (void) nargs;
   (void) data;
 
-  emacs_value file, dir;
+  emacs_value file;
   char *obuf, *nbuf;
   obuf = nbuf = NULL;
 
   if (! (rp_funcall (env, &file, "expand-file-name", 1, args)
-         && (obuf = rp_char_string (env, file))
-         && rp_lisp_string (env, &dir, obuf)))
+         && (obuf = rp_char_string (env, file))))
     return file;
 
   if ((nbuf = canonicalize_file_name (obuf)))
     {
+      emacs_value dir = file;
       if (rp_lisp_string (env, &file, nbuf)
           && rp_funcall (env, &dir, "directory-name-p", 1, &dir)
           && env->is_not_nil (env, dir))
